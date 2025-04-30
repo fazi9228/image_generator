@@ -116,6 +116,9 @@ def on_bulk_download_click():
 # Load API key from .env and Streamlit secrets as fallback
 @st.cache_resource
 def get_api_client():
+    """
+    Get OpenAI API client with proper error handling for both local and cloud deployment
+    """
     # First try to load from .env file (local development)
     load_dotenv()
     api_key = os.getenv("OPENAI_API_KEY")
@@ -123,15 +126,26 @@ def get_api_client():
     # If not found in .env, try to get from Streamlit secrets (cloud deployment)
     if not api_key and hasattr(st, "secrets"):
         try:
-            api_key = st.secrets["OPENAI_API_KEY"]
-        except KeyError:
+            api_key = st.secrets.get("OPENAI_API_KEY")
+        except Exception as e:
+            st.error(f"Error accessing Streamlit secrets: {str(e)}")
             api_key = None
     
     if not api_key:
         st.error("Missing OPENAI_API_KEY in .env file or Streamlit secrets")
+        st.info("Please add your OpenAI API key to access image generation features")
         st.stop()
     
-    return OpenAI(api_key=api_key)
+    try:
+        # Initialize with proper error handling
+        client = OpenAI(api_key=api_key)
+        # Test the client with a simple API call to verify it works
+        client.models.list(limit=1)
+        return client
+    except Exception as e:
+        st.error(f"Error initializing OpenAI client: {str(e)}")
+        st.info("Please check your API key and try again")
+        st.stop()
 
 # Initialize the OpenAI client
 client = get_api_client()
