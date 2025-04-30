@@ -93,25 +93,25 @@ if 'has_generated_image' not in st.session_state:
     st.session_state['has_generated_image'] = False
 
 # Helper function for safely displaying images
-def safe_display_image(image_data, caption=None, use_container_width=True):
+def safe_display_image(image_data, caption=None, width=None):
     """
     Safely display an image with error handling
     
     Args:
         image_data: Image as bytes or file path
         caption: Optional caption for the image
-        use_container_width: Whether to use full container width
+        width: Optional width for the image
     """
     try:
         # First try direct display if image_data is bytes
         if isinstance(image_data, bytes):
-            st.image(image_data, caption=caption, use_container_width=use_container_width)
+            st.image(image_data, caption=caption, width=width)
             return True
             
         # If it's a dict with 'bytes' key (your session state format)
         elif isinstance(image_data, dict) and 'bytes' in image_data:
             if isinstance(image_data['bytes'], bytes):
-                st.image(image_data['bytes'], caption=caption, use_container_width=use_container_width)
+                st.image(image_data['bytes'], caption=caption, width=width)
                 return True
             else:
                 st.error("Invalid image data format in dictionary")
@@ -727,7 +727,7 @@ if st.session_state.get('has_generated_image') and 'current_image' in st.session
             st.subheader("Generated Image")
             
             # Use the safe display function instead of directly using st.image
-            safe_display_image(image_bytes, caption=prompt)
+            safe_display_image(image_bytes, caption=prompt, width=None)
             
             # Generate a filename based on the prompt
             prompt_slug = "".join(c if c.isalnum() else "_" for c in prompt[:30].lower())
