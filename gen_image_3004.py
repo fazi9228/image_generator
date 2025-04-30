@@ -491,13 +491,18 @@ with st.sidebar:
     selected_model = st.selectbox("Choose Model", list(model_options.keys()), index=1)  # Default to GPT-Image-1
     model_id = model_options[selected_model]
     
-    # Image Size
+    # Image Size with model compatibility warning
     st.subheader("Image Properties")
     image_size = st.selectbox(
         "Image Size", 
         ["1024x1024", "1024x1792", "1792x1024"],
         help="Square, Portrait, or Landscape"
     )
+    
+    # Display warning about GPT-Image-1 size limitation
+    if selected_model == "GPT-Image-1" and image_size != "1024x1024":
+        st.warning("⚠️ Note: GPT-Image-1 only works well with 1024x1024 size. Other sizes may cause errors.")
+    
     
     # Logo/Watermark option
     st.subheader("Branding")
