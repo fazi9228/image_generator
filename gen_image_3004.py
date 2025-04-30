@@ -680,18 +680,26 @@ with tab2:
     # Display prompts from the selected theme
     st.write(f"**{selected_theme} Prompts:**")
     
-    # Create a grid layout for theme prompts
-    theme_cols = st.columns(2)
-    
-    # Display each prompt with a "Use This" button
-    for i, prompt in enumerate(theme_packs[selected_theme]):
-        col_idx = i % 2
-        with theme_cols[col_idx]:
-            st.write(f"{i+1}. {prompt}")
-            if st.button(f"Use Prompt #{i+1}", key=f"theme_prompt_{i}"):
-                # Store the selected prompt in session state and rerun
-                st.session_state['user_prompt'] = prompt
-                st.rerun()
+    # Check if we have prompts for this theme
+    if selected_theme in theme_packs and theme_packs[selected_theme]:
+        # Create a grid layout for theme prompts
+        theme_cols = st.columns(2)
+        
+        # Display each prompt with a "Use This" button
+        for i, prompt in enumerate(theme_packs[selected_theme]):
+            col_idx = i % 2
+            with theme_cols[col_idx]:
+                st.write(f"{i+1}. {prompt}")
+                if st.button(f"Use Prompt #{i+1}", key=f"theme_prompt_{i}"):
+                    # Store the selected prompt in session state and rerun
+                    st.session_state['user_prompt'] = prompt
+                    st.rerun()
+    else:
+        st.error(f"No prompts found for theme: {selected_theme}")
+        if st.session_state.get('debug_mode', False):
+            st.write("Available themes:", list(theme_packs.keys()))
+            if selected_theme in theme_packs:
+                st.write(f"Content for {selected_theme}: {theme_packs[selected_theme]}")
                 
 # Generate button (outside tabs to be always visible)
 if st.button("Generate Image", type="primary", use_container_width=True):
@@ -731,8 +739,9 @@ if st.session_state.get('has_generated_image') and 'current_image' in st.session
         if image_bytes and isinstance(image_bytes, bytes):
             st.subheader("Generated Image")
             
-            # Use the safe display function instead of directly using st.image
-            safe_display_image(image_bytes, caption=prompt, width=None)
+            # Use the safe display function with a controlled width
+            # The width=700 parameter will make the image more reasonably sized
+            safe_display_image(image_bytes, caption=prompt, width=700)
             
             # Generate a filename based on the prompt
             prompt_slug = "".join(c if c.isalnum() else "_" for c in prompt[:30].lower())
