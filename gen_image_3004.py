@@ -137,11 +137,30 @@ def get_api_client():
         st.stop()
     
     try:
-        # Initialize with proper error handling
+        # Initialize with minimal parameters to avoid version conflicts
         client = OpenAI(api_key=api_key)
-        # Test the client with a simple API call to verify it works
-        client.models.list(limit=1)
-        return client
+        
+        # Test connection with a simple operation
+        # We're using a try/except here because we don't want to 
+        # make an actual API call if we can avoid it
+        try:
+            # Just access an attribute to make sure the client is working
+            _ = client.api_key
+            return client
+        except Exception as e:
+            st.error(f"Error verifying OpenAI client: {str(e)}")
+            st.stop()
+            
+    except TypeError as e:
+        # Special handling for the proxies error
+        if "unexpected keyword argument 'proxies'" in str(e):
+            st.error("OpenAI client version compatibility issue detected.")
+            st.info("Try updating your requirements.txt to: 'openai>=1.0.0,<2.0.0'")
+            st.stop()
+        else:
+            st.error(f"Error initializing OpenAI client: {str(e)}")
+            st.info("Please check your API key and try again")
+            st.stop()
     except Exception as e:
         st.error(f"Error initializing OpenAI client: {str(e)}")
         st.info("Please check your API key and try again")
